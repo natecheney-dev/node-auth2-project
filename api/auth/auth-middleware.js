@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const { JWT_SECRET } = require("../secrets"); // use this secret!
+const User = require('../users/users-model')
 
 const restricted = (req, res, next) => {
   /*
@@ -62,7 +63,7 @@ const checkUsernameExists = async (req, res, next) => {
     
     try{
       const { username } = req.body
-      const [username_exists] = await username_exists.findBy({ username })
+      const [username_exists] = await User.findBy({ username })
       if (!username_exists){
         next({ status: 401, message:`Invalid credentials`})
       }
@@ -96,19 +97,21 @@ const validateRoleName = (req, res, next) => {
       "message": "Role name can not be longer than 32 chars"
     }
   */
-    if(!req.body.role_name || !req.body.role_name.trim()){
+    
+
+    if (!req.body.role_name || req.body.role_name.trim() === '') {
       req.body.role_name = 'student'
-      next()
+      return next()
     }
-    else if(req.body.role_name.trim() === 'admin'){
-      next({ status: 422, message: `Role name can not be admin`})
+    else if (req.body.role_name.trim() === 'admin') {
+      return next({ status: 422, message: 'Role name can not be admin'})
     }
-    else if(req.body.role_name.trim().length > 32){
-      next({ status: 422, message:`Role name can not be longer than 32 chars`})
+    else if (req.body.role_name.trim().length > 32) {
+      return next({ status: 422, message: 'Role name can not be longer than 32 chars'})
     }
-    else{
-      next()
-    }
+    req.body.role_name = req.body.role_name.trim()
+    next()
+  
 }
 
 module.exports = {
